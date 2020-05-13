@@ -182,7 +182,7 @@ def viz_kitti_video():
     return
 
 
-def show_image_with_boxes(img, objects, calib, show3d=True, depth=None):
+def show_image_with_boxes(img, data_idx, objects, calib, show3d=True, depth=None):
     """ Show image with 2D bounding boxes """
     img1 = np.copy(img)  # for 2d bbox
     img2 = np.copy(img)  # for 3d bbox
@@ -206,15 +206,20 @@ def show_image_with_boxes(img, objects, calib, show3d=True, depth=None):
         # box3d_pts_32d = calib.project_velo_to_image(box3d_pts_3d_velo)
         # img3 = utils.draw_projected_box3d(img3, box3d_pts_32d)
     # print("img1:", img1.shape)
-    cv2.imshow("2dbox", img1)
+
+    # cv2.imshow("2dbox", img1)
+    # cv2.imwrite(str(data_idx) + '.png', img1)
+    cv2.imwrite(str(data_idx) + '3d' + '.png', img2)
+    # cv2.imwrite(str(data_idx) + '4d' + '.png', img3)
+
     # print("img3:",img3.shape)
     # Image.fromarray(img3).show()
-    show3d = True
-    if show3d:
-        # print("img2:",img2.shape)
-        cv2.imshow("3dbox", img2)
-    if depth is not None:
-        cv2.imshow("depth", depth)
+    # show3d = True
+    # if show3d:
+    #     # print("img2:",img2.shape)
+    #     cv2.imshow("3dbox", img2)
+    # if depth is not None:
+    #     cv2.imshow("depth", depth)
 
 
 def show_image_with_boxes_3type(img, objects, calib, objects2d, name, objects_pred):
@@ -340,21 +345,20 @@ def get_depth_pt3d(depth):
     return np.array(pt3d)
 
 
-def show_lidar_with_depth(
-    pc_velo,
-    objects,
-    calib,
-    fig,
-    img_fov=False,
-    img_width=None,
-    img_height=None,
-    objects_pred=None,
-    depth=None,
-    cam_img=None,
-    constraint_box=False,
-    pc_label=False,
-    save=False,
-):
+def show_lidar_with_depth(pc_velo,
+                          data_idx,
+                          objects,
+                          calib,
+                          fig,
+                          img_fov=False,
+                          img_width=None,
+                          img_height=None,
+                          objects_pred=None,
+                          depth=None,
+                          cam_img=None,
+                          constraint_box=False,
+                          pc_label=False,
+                          save=False):
     """ Show all LiDAR points.
         Draw 3d box in LiDAR point cloud (in velo coord system) """
     from viz_util import draw_lidar_simple, draw_lidar, draw_gt_boxes3d
@@ -426,8 +430,8 @@ def show_lidar_with_depth(
                 line_width=1,
                 figure=fig,
             )
-    mlab.show(1)
-
+    mlab.show(stop=False)
+    mlab.savefig(filename='lidar' + str(data_idx) + '.png')
 
 def save_depth0(
     data_idx,
@@ -635,7 +639,7 @@ def stat_lidar_with_boxes(pc_velo, objects, calib):
         print("%.4f %.4f %.4f %s" % (v_w, v_h, v_l, obj.type))
 
 
-def show_lidar_on_image(pc_velo, img, calib, img_width, img_height):
+def show_lidar_on_image(pc_velo, data_idx, img, calib, img_width, img_height):
     """ Project LiDAR points to image """
     imgfov_pc_velo, pts_2d, fov_inds = get_lidar_in_image_fov(
         pc_velo, calib, 0, 0, img_width, img_height, True
@@ -658,11 +662,11 @@ def show_lidar_on_image(pc_velo, img, calib, img_width, img_height):
             color=tuple(color),
             thickness=-1,
         )
-    cv2.imshow("projection", img)
+    cv2.imwrite("projection" + str(data_idx) + '.png', img)
     return img
 
 
-def show_lidar_topview_with_boxes(pc_velo, objects, calib, objects_pred=None):
+def show_lidar_topview_with_boxes(pc_velo, data_idx, objects, calib, objects_pred=None):
     """ top_view image"""
     # print('pc_velo shape: ',pc_velo.shape)
     top_view = utils.lidar_to_top(pc_velo)
@@ -691,7 +695,7 @@ def show_lidar_topview_with_boxes(pc_velo, objects, calib, objects_pred=None):
             top_image, gt, text_lables=lines, scores=None, thickness=1, is_gt=False
         )
 
-    cv2.imshow("top_image", top_image)
+    cv2.imwrite("top_image" + str(data_idx) + '.png', top_image)
 
 
 def dataset_viz(root_dir, args):
@@ -761,19 +765,25 @@ def dataset_viz(root_dir, args):
                 obj.print_object()
                 n_obj += 1
 
+        print(args.show_lidar_topview_with_boxes)
+        print(args.show_image_with_boxes)
+        print(args.show_lidar_with_depth)
+        print(args.show_lidar_on_image)
+
         # Draw 3d box in LiDAR point cloud
         if args.show_lidar_topview_with_boxes:
             # Draw lidar top view
-            show_lidar_topview_with_boxes(pc_velo, objects, calib, objects_pred)
+            show_lidar_topview_with_boxes(pc_velo, data_idx, objects, calib, objects_pred)
 
         # show_image_with_boxes_3type(img, objects, calib, objects2d, data_idx, objects_pred)
         if args.show_image_with_boxes:
             # Draw 2d and 3d boxes on image
-            show_image_with_boxes(img, objects, calib, True, depth)
+            show_image_with_boxes(img, data_idx, objects, calib, True, depth)
         if args.show_lidar_with_depth:
             # Draw 3d box in LiDAR point cloud
             show_lidar_with_depth(
                 pc_velo,
+                data_idx,
                 objects,
                 calib,
                 fig,
@@ -791,12 +801,14 @@ def dataset_viz(root_dir, args):
             #    objects_pred, depth, img)
         if args.show_lidar_on_image:
             # Show LiDAR points on image.
-            show_lidar_on_image(pc_velo[:, 0:3], img, calib, img_width, img_height)
-        input_str = raw_input()
+            show_lidar_on_image(pc_velo[:, 0:3], data_idx, img, calib, img_width, img_height)
 
-        mlab.clf()
-        if input_str == "killall":
-            break
+        print("Here!")
+        # input_str = raw_input()
+
+        # mlab.clf()
+        # if input_str == "killall":
+        #     break
 
 
 def depth_to_lidar_format(root_dir, args):
@@ -938,6 +950,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.pred:
         assert os.path.exists(args.dir + "/" + args.split + "/pred")
+
+    print('before run')
 
     if args.vis:
         dataset_viz(args.dir, args)
