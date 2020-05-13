@@ -208,9 +208,7 @@ def show_image_with_boxes(img, data_idx, objects, calib, show3d=True, depth=None
     # print("img1:", img1.shape)
 
     # cv2.imshow("2dbox", img1)
-    # cv2.imwrite(str(data_idx) + '.png', img1)
-    cv2.imwrite(str(data_idx) + '3d' + '.png', img2)
-    # cv2.imwrite(str(data_idx) + '4d' + '.png', img3)
+    cv2.imwrite('results/%s_image_with_boxes.png' % data_idx, img2)
 
     # print("img3:",img3.shape)
     # Image.fromarray(img3).show()
@@ -714,7 +712,11 @@ def dataset_viz(root_dir, args):
             data_idx = args.ind
         # Load data from dataset
         if args.split == "training":
-            objects = dataset.get_label_objects(data_idx)
+            try:
+                objects = dataset.get_label_objects(data_idx)
+            except:
+                print('END!')
+                break
         else:
             objects = []
         objects2d = objects2ds[data_idx]
@@ -765,10 +767,10 @@ def dataset_viz(root_dir, args):
                 obj.print_object()
                 n_obj += 1
 
-        print(args.show_lidar_topview_with_boxes)
-        print(args.show_image_with_boxes)
-        print(args.show_lidar_with_depth)
-        print(args.show_lidar_on_image)
+        print('lidar_topview_with_boxes: %s' % args.show_lidar_topview_with_boxes)
+        print('image_with_boxes: %s' % args.show_image_with_boxes)
+        print('lidar_with_depth: %s' % args.show_lidar_with_depth)
+        print('lidar_on_image: %s' % args.show_lidar_on_image)
 
         # Draw 3d box in LiDAR point cloud
         if args.show_lidar_topview_with_boxes:
@@ -803,7 +805,6 @@ def dataset_viz(root_dir, args):
             # Show LiDAR points on image.
             show_lidar_on_image(pc_velo[:, 0:3], data_idx, img, calib, img_width, img_height)
 
-        print("Here!")
         # input_str = raw_input()
 
         # mlab.clf()
@@ -950,8 +951,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.pred:
         assert os.path.exists(args.dir + "/" + args.split + "/pred")
-
-    print('before run')
 
     if args.vis:
         dataset_viz(args.dir, args)
