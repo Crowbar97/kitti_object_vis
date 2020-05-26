@@ -72,6 +72,11 @@ class Object3d(object):
 
         # extract 3d bounding box information
         self.h = data[8]  # box height
+        # TODO: fix the real problem
+        if data[0] == 'Pedestrian':
+            self.h *= 1.8
+        elif data[0] == 'Car':
+            self.h /= 2.5
         self.w = data[9]  # box width
         self.l = data[10]  # box length (in meters)
         self.t = (data[11], data[12], data[13])  # location (x,y,z) in camera coord.

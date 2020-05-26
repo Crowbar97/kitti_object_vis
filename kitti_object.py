@@ -224,6 +224,7 @@ def show_image_with_boxes_3type(img, objects, calib, objects2d, name, objects_pr
     """ Show image with 2D bounding boxes """
     img1 = np.copy(img)  # for 2d bbox
     type_list = ["Pedestrian", "Car", "Cyclist"]
+
     # draw Label
     color = (0, 255, 0)
     for obj in objects:
@@ -244,6 +245,7 @@ def show_image_with_boxes_3type(img, objects, calib, objects2d, name, objects_pr
     for n in range(len(text_lables)):
         text_pos = (startx, 25 * (n + 1))
         cv2.putText(img1, text_lables[n], text_pos, font, 0.5, color, 0, cv2.LINE_AA)
+
     # draw 2D Pred
     color = (0, 0, 255)
     for obj in objects2d:
@@ -262,6 +264,7 @@ def show_image_with_boxes_3type(img, objects, calib, objects2d, name, objects_pr
     for n in range(len(text_lables)):
         text_pos = (startx, 25 * (n + 1))
         cv2.putText(img1, text_lables[n], text_pos, font, 0.5, color, 0, cv2.LINE_AA)
+
     # draw 3D Pred
     if objects_pred is not None:
         color = (255, 0, 0)
@@ -696,6 +699,36 @@ def show_lidar_topview_with_boxes(pc_velo, data_idx, objects, calib, objects_pre
     cv2.imwrite("top_image" + str(data_idx) + '.png', top_image)
 
 
+def depth_to_lidar_format(root_dir, args):
+    dataset = kitti_object(root_dir, split=args.split, args=args)
+    for data_idx in range(len(dataset)):
+        # Load data from dataset
+
+        pc_velo = dataset.get_lidar(data_idx)[:, 0:4]
+        calib = dataset.get_calibration(data_idx)
+        depth, is_exist = dataset.get_depth(data_idx)
+        img = dataset.get_image(data_idx)
+        img_height, img_width, img_channel = img.shape
+        print(data_idx, "image shape: ", img.shape)
+        print(data_idx, "velo  shape: ", pc_velo.shape)
+        print(data_idx, "depth shape: ", depth.shape)
+        # depth = cv2.cvtColor(depth, cv2.COLOR_BGR2RGB)
+        # depth_height, depth_width, depth_channel = img.shape
+
+        # print(('Image shape: ', img.shape))
+        save_depth(
+            data_idx,
+            pc_velo,
+            calib,
+            args.img_fov,
+            img_width,
+            img_height,
+            depth,
+            constraint_box=args.const_box,
+        )
+        input_str = raw_input()
+
+
 def dataset_viz(root_dir, args):
     dataset = kitti_object(root_dir, split=args.split, args=args)
     ## load 2d detection results
@@ -750,6 +783,8 @@ def dataset_viz(root_dir, args):
             print(data_idx, "depth shape: ", depth.shape)
         else:
             depth = None
+
+        # print(depth)
 
         # depth = cv2.cvtColor(depth, cv2.COLOR_BGR2RGB)
         # depth_height, depth_width, depth_channel = img.shape
@@ -811,35 +846,6 @@ def dataset_viz(root_dir, args):
         # if input_str == "killall":
         #     break
 
-
-def depth_to_lidar_format(root_dir, args):
-    dataset = kitti_object(root_dir, split=args.split, args=args)
-    for data_idx in range(len(dataset)):
-        # Load data from dataset
-
-        pc_velo = dataset.get_lidar(data_idx)[:, 0:4]
-        calib = dataset.get_calibration(data_idx)
-        depth, is_exist = dataset.get_depth(data_idx)
-        img = dataset.get_image(data_idx)
-        img_height, img_width, img_channel = img.shape
-        print(data_idx, "image shape: ", img.shape)
-        print(data_idx, "velo  shape: ", pc_velo.shape)
-        print(data_idx, "depth shape: ", depth.shape)
-        # depth = cv2.cvtColor(depth, cv2.COLOR_BGR2RGB)
-        # depth_height, depth_width, depth_channel = img.shape
-
-        # print(('Image shape: ', img.shape))
-        save_depth(
-            data_idx,
-            pc_velo,
-            calib,
-            args.img_fov,
-            img_width,
-            img_height,
-            depth,
-            constraint_box=args.const_box,
-        )
-        input_str = raw_input()
 
 
 def read_det_file(det_filename):
