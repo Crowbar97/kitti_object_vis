@@ -14,7 +14,7 @@ def get_image(idx):
 
 
 def get_label_objects(idx):
-    label_filename = path.join(label_dir, args.input_folder_name, "%06d.txt" % (idx))
+    label_filename = path.join(args.input_dir_path, "%06d.txt" % (idx))
     return utils.read_label(label_filename)
 
 
@@ -82,20 +82,20 @@ def draw(data_idx):
 
 
 image_dir = 'data/object/training/image_2'
-label_dir = 'data/object/training/label_2'
+# label_dir = 'data/object/training/label_2'
 calib_dir = 'data/object/training/calib'
 
 
 parser = argparse.ArgumentParser(description='PCDet framework result visualizer')
-parser.add_argument('input_folder_name', type=str,
-                    help='Folder name with input labels')
+parser.add_argument('input_dir_path', type=str,
+                    help='Path to directory with input labels')
 parser.add_argument('output_dir_path', type=str,
-                    help='Path to output dir for result images storage')
+                    help='Path to output dir for result image storage')
 args = parser.parse_args()
 
 
 def main():
-    for file_name in tqdm(listdir(path.join(label_dir, args.input_folder_name))[:]):
+    for file_name in tqdm(listdir(path.join(args.input_dir_path))[:]):
         idx = int(file_name[:-4])
         # tqdm.write(str(idx))
         draw(idx)

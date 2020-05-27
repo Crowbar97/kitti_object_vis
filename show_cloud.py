@@ -113,7 +113,7 @@ def show_lidar_with_depth(data_idx,
     #             figure=fig,
     #         )
     mlab.show(stop=False)
-    mlab.savefig(filename='lidar' + str(data_idx) + '.png')
+    # mlab.savefig(filename='lidar' + str(data_idx) + '.png')
 
 
 image_dir = 'data/object/training/image_2'
@@ -122,23 +122,18 @@ calib_dir = 'data/object/training/calib'
 lidar_dir = 'data/object/training/velodyne'
 
 
-# parser = argparse.ArgumentParser(description='PCDet framework result visualizer')
-# parser.add_argument('input_folder_name', type=str,
-#                     help='Folder name with input labels')
-# parser.add_argument('output_dir_path', type=str,
-#                     help='Path to output dir for result images storage')
-# args = parser.parse_args()
+parser = argparse.ArgumentParser(description='PCDet framework result point cloud visualizer')
+parser.add_argument('scene_id', type=int,
+                    help='Scene id')
+args = parser.parse_args()
 
 
 def main():
-    data_idx = 8
-
-    img = get_image(data_idx)
+    img = get_image(args.scene_id)
     img_height, img_width, img_channel = img.shape
 
-    objects = get_label_objects(data_idx)
-    calib = get_calibration(data_idx)
-
+    objects = get_label_objects(args.scene_id)
+    calib = get_calibration(args.scene_id)
 
     fig = mlab.figure(figure=None,
                       bgcolor=(0, 0, 0),
@@ -148,7 +143,7 @@ def main():
 
     dtype = np.float32
     n_vec = 4
-    pc_velo = get_lidar(data_idx, dtype, n_vec)[:, 0:n_vec]
+    pc_velo = get_lidar(args.scene_id, dtype, n_vec)[:, 0:n_vec]
 
     img_fov = False
     objects_pred = None
@@ -157,7 +152,7 @@ def main():
     save_depth = False
     pc_label = False
 
-    show_lidar_with_depth(data_idx,
+    show_lidar_with_depth(args.scene_id,
                           pc_velo,
                           objects,
                           calib,
