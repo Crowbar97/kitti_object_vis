@@ -81,6 +81,9 @@ class Object3d(object):
         if data[0] == 'Pedestrian':
             self.h *= 1.7
             self.w /= 2.5
+        elif data[0] == 'Cyclist':
+            self.l *= 3
+            self.w /= 2
         elif data[0] == 'Car':
             self.h /= 2.5
             self.l *= 2

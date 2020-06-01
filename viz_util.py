@@ -316,77 +316,54 @@ def draw_lidar(
     return fig
 
 
-def draw_gt_boxes3d(
-    gt_boxes3d,
-    fig,
-    color=(1, 1, 1),
-    line_width=1,
-    draw_text=True,
-    text_scale=(1, 1, 1),
-    color_list=None,
-    label=""
-):
-    """ Draw 3D bounding boxes
-    Args:
-        gt_boxes3d: numpy array (n,8,3) for XYZs of the box corners
-        fig: mayavi figure handler
-        color: RGB value tuple in range (0,1), box line color
-        line_width: box line width
-        draw_text: boolean, if true, write box indices beside boxes
-        text_scale: three number tuple
-        color_list: a list of RGB tuple, if not None, overwrite color.
-    Returns:
-        fig: updated fig
-    """
-    num = len(gt_boxes3d)
-    for n in range(num):
-        b = gt_boxes3d[n]
-        if color_list is not None:
-            color = color_list[n]
-        if draw_text:
-            mlab.text3d(
-                b[4, 0],
-                b[4, 1],
-                b[4, 2],
-                label,
-                scale=text_scale,
-                color=color,
-                figure=fig,
-            )
-        for k in range(0, 4):
-            # http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html
-            i, j = k, (k + 1) % 4
-            mlab.plot3d(
-                [b[i, 0], b[j, 0]],
-                [b[i, 1], b[j, 1]],
-                [b[i, 2], b[j, 2]],
-                color=color,
-                tube_radius=None,
-                line_width=line_width,
-                figure=fig,
-            )
+class_colors = {
+    'Pedestrian': (1, 0, 0),
+    'Cyclist': (0, 0.5, 1),
+    'Car': (0, 1, 0)
+}
 
-            i, j = k + 4, (k + 1) % 4 + 4
-            mlab.plot3d(
-                [b[i, 0], b[j, 0]],
-                [b[i, 1], b[j, 1]],
-                [b[i, 2], b[j, 2]],
-                color=color,
-                tube_radius=None,
-                line_width=line_width,
-                figure=fig,
-            )
+def draw_gt_box3d(gt_box3d, fig, obj,
+                  line_width=1, draw_text=True, text_scale=(1, 1, 1)):
 
-            i, j = k, k + 4
-            mlab.plot3d(
-                [b[i, 0], b[j, 0]],
-                [b[i, 1], b[j, 1]],
-                [b[i, 2], b[j, 2]],
-                color=color,
-                tube_radius=None,
-                line_width=line_width,
-                figure=fig,
-            )
+    if obj.type in class_colors:
+        color = class_colors[obj.type]
+    else:
+        color = (1, 0, 1)
+
+    if draw_text:
+        label = '%s: %.1f' % (obj.type, obj.score)
+        mlab.text3d(gt_box3d[4, 0], gt_box3d[4, 1], gt_box3d[4, 2],
+                    label, scale=text_scale, color=color, figure=fig)
+
+    for k in range(0, 4):
+        # http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html
+        i, j = k, (k + 1) % 4
+        mlab.plot3d([gt_box3d[i, 0], gt_box3d[j, 0]],
+                    [gt_box3d[i, 1], gt_box3d[j, 1]],
+                    [gt_box3d[i, 2], gt_box3d[j, 2]],
+                    color=color,
+                    tube_radius=None,
+                    line_width=line_width,
+                    figure=fig)
+
+        i, j = k + 4, (k + 1) % 4 + 4
+        mlab.plot3d([gt_box3d[i, 0], gt_box3d[j, 0]],
+                    [gt_box3d[i, 1], gt_box3d[j, 1]],
+                    [gt_box3d[i, 2], gt_box3d[j, 2]],
+                    color=color,
+                    tube_radius=None,
+                    line_width=line_width,
+                    figure=fig)
+
+        i, j = k, k + 4
+        mlab.plot3d([gt_box3d[i, 0], gt_box3d[j, 0]],
+                    [gt_box3d[i, 1], gt_box3d[j, 1]],
+                    [gt_box3d[i, 2], gt_box3d[j, 2]],
+                    color=color,
+                    tube_radius=None,
+                    line_width=line_width,
+                    figure=fig)
+
     # mlab.show(1)
     # mlab.view(azimuth=180, elevation=70, focalpoint=[ 12.0909996 , -1.04700089, -2.03249991], distance=62.0, figure=fig)
     return fig

@@ -7,7 +7,7 @@ import cv2
 from tqdm import tqdm
 
 import kitti_util as utils
-from viz_util import draw_lidar_simple, draw_lidar, draw_gt_boxes3d
+from viz_util import draw_lidar_simple, draw_lidar, draw_gt_box3d
 
 
 def get_image(idx):
@@ -30,6 +30,11 @@ def get_lidar(idx, dtype=np.float64, n_vec=4):
     lidar_filename = path.join(lidar_dir, "%06d.bin" % (idx))
     return utils.load_velo_scan(lidar_filename, dtype, n_vec)
 
+
+def norm_score(score):
+    if abs(score) > 10:
+        score = 10 * np.sign(score)
+    return (score + 10) / 20 * 100
 
 def show_lidar_with_depth(data_idx,
                           pc_velo,
@@ -79,13 +84,17 @@ def show_lidar_with_depth(data_idx,
     for obj in objects:
         if obj.type == "DontCare":
             continue
-        # Draw 3d bounding box
+
+        obj.score = norm_score(obj.score)
+        if obj.score < args.threshold:
+            continue
+
         box3d_pts_2d, box3d_pts_3d = utils.compute_box_3d(obj, calib.P)
         box3d_pts_3d_velo = calib.project_rect_to_velo(box3d_pts_3d)
         print("box3d_pts_3d_velo:")
         print(box3d_pts_3d_velo)
 
-        draw_gt_boxes3d([box3d_pts_3d_velo], fig=fig, color=color, label=obj.type)
+        draw_gt_box3d(box3d_pts_3d_velo, fig, obj)
 
     # if objects_pred is not None:
     #     color = (1, 0, 0)
@@ -125,6 +134,8 @@ lidar_dir = 'data/object/training/velodyne'
 parser = argparse.ArgumentParser(description='PCDet framework result point cloud visualizer')
 parser.add_argument('scene_id', type=int,
                     help='Scene id')
+parser.add_argument('-t', '--threshold', type=float, default=0,
+                    help='Confidence threshold')
 args = parser.parse_args()
 
 
