@@ -51,24 +51,29 @@ def new_show():
     cv2.imwrite("imgs/" + str(name) + ".png", img1)
 
 
-# OpenCV uses BGR format
-class_colors = {
-    'Pedestrian': (0, 0, 255),
-    'Cyclist': (255, 0, 0),
-    'Car': (0, 255, 0)
-    }
 
+def norm_score(score):
+    if abs(score) > 10:
+        score = 10 * np.sign(score)
+    return (score + 10) / 20 * 100
 
 def show_image_with_boxes(data_idx, img,
                           objects, calib,
                           show3d=True, depth=None):
+    # FIXME: remove dummy
+    score = 99
+
     img_res = np.copy(img)
     for obj in objects:
         if obj.type == "DontCare":
             continue
+
+        obj.score = norm_score(obj.score)
+        if obj.score < args.threshold:
+            continue
+
         box3d_pts_2d, box3d_pts_3d = utils.compute_box_3d(obj, calib.P)
-        img_res = utils.draw_projected_box3d(img_res, box3d_pts_2d,
-                                             color=class_colors[obj.type])
+        img_res = utils.draw_projected_box3d(img_res, box3d_pts_2d, obj)
 
     cv2.imwrite(path.join(args.output_dir_path, '%s_image_with_boxes.png' % data_idx), img_res)
 
@@ -91,11 +96,13 @@ parser.add_argument('input_dir_path', type=str,
                     help='Path to directory with input labels')
 parser.add_argument('output_dir_path', type=str,
                     help='Path to output dir for result image storage')
+parser.add_argument('-t', '--threshold', type=float, default=100,
+                    help='Confidence threshold')
 args = parser.parse_args()
 
 
 def main():
-    for file_name in tqdm(listdir(path.join(args.input_dir_path))[:]):
+    for file_name in tqdm(listdir(path.join(args.input_dir_path))[:100]):
         idx = int(file_name[:-4])
         # tqdm.write(str(idx))
         draw(idx)

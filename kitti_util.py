@@ -82,6 +82,8 @@ class Object3d(object):
         self.t = (data[11], data[12], data[13])  # location (x,y,z) in camera coord.
         self.ry = data[14]  # yaw angle (around Y-axis in camera coordinates) [-pi..pi]
 
+        self.score = data[15]
+
     def estimate_diffculty(self):
         """ Function that estimate difficulty to detect the object as defined in kitti website"""
         # height of the bounding box
@@ -674,7 +676,14 @@ def compute_orientation_3d(obj, P):
     return orientation_2d, np.transpose(orientation_3d)
 
 
-def draw_projected_box3d(image, qs, color=(0, 255, 0), thickness=2):
+# OpenCV uses BGR format
+class_colors = {
+    'Pedestrian': (0, 0, 255),
+    'Cyclist': (255, 0, 0),
+    'Car': (0, 150, 0)
+    }
+
+def draw_projected_box3d(image, qs, obj, thickness=2):
     """ Draw 3d bounding box in image
         qs: (8,3) array of vertices for the 3d box in following order:
             1 -------- 0
@@ -685,18 +694,37 @@ def draw_projected_box3d(image, qs, color=(0, 255, 0), thickness=2):
           |/         |/
           6 -------- 7
     """
+    color = class_colors[obj.type]
     qs = qs.astype(np.int32)
     for k in range(0, 4):
         # Ref: http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html
         i, j = k, (k + 1) % 4
-        # use LINE_AA for opencv3
-        # cv2.line(image, (qs[i,0],qs[i,1]), (qs[j,0],qs[j,1]), color, thickness, cv2.CV_AA)
-        cv2.line(image, (qs[i, 0], qs[i, 1]), (qs[j, 0], qs[j, 1]), color, thickness)
+        cv2.line(image, (qs[i, 0], qs[i, 1]), (qs[j, 0], qs[j, 1]),
+                 color, thickness)
+
         i, j = k + 4, (k + 1) % 4 + 4
-        cv2.line(image, (qs[i, 0], qs[i, 1]), (qs[j, 0], qs[j, 1]), color, thickness)
+        cv2.line(image, (qs[i, 0], qs[i, 1]), (qs[j, 0], qs[j, 1]),
+                 color, thickness)
 
         i, j = k, k + 4
-        cv2.line(image, (qs[i, 0], qs[i, 1]), (qs[j, 0], qs[j, 1]), color, thickness)
+        cv2.line(image, (qs[i, 0], qs[i, 1]), (qs[j, 0], qs[j, 1]),
+                 color, thickness)
+    
+    # putting label
+    label = '%s: %.1f' % (obj.type, obj.score)
+    label_coords = (qs[4, 0], qs[4, 1])
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    scale = 0.5
+    thick = 1
+    (text_width, text_height) = cv2.getTextSize(label, font, scale, thick)[0]
+    box_coords = ((label_coords[0] - 5, label_coords[1] - 15),
+                  (label_coords[0] + 5 + text_width, label_coords[1] - 5 + text_height))
+    cv2.rectangle(image, box_coords[0], box_coords[1],
+                  color, cv2.FILLED)
+    cv2.putText(image, label, (label_coords[0], label_coords[1]),
+                font, scale, (255, 255, 255), thick, cv2.LINE_AA)
+
     return image
 
 
