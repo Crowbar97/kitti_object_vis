@@ -72,17 +72,26 @@ class Object3d(object):
 
         # extract 3d bounding box information
         self.h = data[8]  # box height
-        # TODO: fix the real problem
-        if data[0] == 'Pedestrian':
-            self.h *= 1.8
-        elif data[0] == 'Car':
-            self.h /= 2.5
         self.w = data[9]  # box width
         self.l = data[10]  # box length (in meters)
         self.t = (data[11], data[12], data[13])  # location (x,y,z) in camera coord.
         self.ry = data[14]  # yaw angle (around Y-axis in camera coordinates) [-pi..pi]
 
-        self.score = data[15]
+        # TODO: fix the real problem
+        if data[0] == 'Pedestrian':
+            self.h *= 1.7
+            self.w /= 2.5
+        elif data[0] == 'Car':
+            self.h /= 2.5
+            self.l *= 2
+            self.w *= 1.2
+
+        if len(data) == 16:
+            # for predictions
+            self.score = data[15]
+        else:
+            # for ground truth labels
+            self.score = 10
 
     def estimate_diffculty(self):
         """ Function that estimate difficulty to detect the object as defined in kitti website"""
@@ -628,6 +637,10 @@ def compute_box_3d(obj, P):
     y_corners = [0, 0, 0, 0, -h, -h, -h, -h]
     z_corners = [w / 2, -w / 2, -w / 2, w / 2, w / 2, -w / 2, -w / 2, w / 2]
 
+    # x_corners = [l, l, -l, -l, l, l, -l, -l]
+    # y_corners = [0, 0, 0, 0, -h, -h, -h, -h]
+    # z_corners = [w, -w, -w, w, w, -w, -w, w]
+
     # rotate and translate 3d bounding box
     corners_3d = np.dot(R, np.vstack([x_corners, y_corners, z_corners]))
     # print corners_3d.shape
@@ -636,9 +649,9 @@ def compute_box_3d(obj, P):
     corners_3d[2, :] = corners_3d[2, :] + obj.t[2]
     # print 'cornsers_3d: ', corners_3d
     # only draw 3d bounding box for objs in front of the camera
-    if np.any(corners_3d[2, :] < 0.1):
-        corners_2d = None
-        return corners_2d, np.transpose(corners_3d)
+    # if np.any(corners_3d[2, :] < 0.1):
+    #     corners_2d = None
+    #     return corners_2d, np.transpose(corners_3d)
 
     # project the 3d bounding box into the image plane
     corners_2d = project_to_image(np.transpose(corners_3d), P)
@@ -694,7 +707,10 @@ def draw_projected_box3d(image, qs, obj, thickness=2):
           |/         |/
           6 -------- 7
     """
-    color = class_colors[obj.type]
+    if obj.type in class_colors:
+        color = class_colors[obj.type]
+    else:
+        color = (255, 0, 255)
     qs = qs.astype(np.int32)
     for k in range(0, 4):
         # Ref: http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html

@@ -60,9 +60,6 @@ def norm_score(score):
 def show_image_with_boxes(data_idx, img,
                           objects, calib,
                           show3d=True, depth=None):
-    # FIXME: remove dummy
-    score = 99
-
     img_res = np.copy(img)
     for obj in objects:
         if obj.type == "DontCare":
@@ -96,13 +93,13 @@ parser.add_argument('input_dir_path', type=str,
                     help='Path to directory with input labels')
 parser.add_argument('output_dir_path', type=str,
                     help='Path to output dir for result image storage')
-parser.add_argument('-t', '--threshold', type=float, default=100,
+parser.add_argument('-t', '--threshold', type=float, default=0,
                     help='Confidence threshold')
 args = parser.parse_args()
 
 
 def main():
-    for file_name in tqdm(listdir(path.join(args.input_dir_path))[:100]):
+    for file_name in tqdm(listdir(path.join(args.input_dir_path))[:]):
         idx = int(file_name[:-4])
         # tqdm.write(str(idx))
         draw(idx)
