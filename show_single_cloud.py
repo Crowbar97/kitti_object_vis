@@ -1,8 +1,10 @@
+
 from os import path, listdir
 import argparse
 
 import mayavi.mlab as mlab
-mlab.options.offscreen = True
+# RENDER FLAG
+mlab.options.offscreen = False
 
 import numpy as np
 import cv2
@@ -53,7 +55,7 @@ def show_lidar_with_depth(data_idx,
             continue
 
         obj.score = norm_score(obj.score)
-        if obj.score < args.threshold:
+        if obj.score < threshold:
             continue
 
         box3d_pts_2d, box3d_pts_3d = utils.compute_box_3d(obj, calib.P)
@@ -68,14 +70,14 @@ def show_lidar_with_depth(data_idx,
               # focalpoint=[12.0909996 , -1.04700089, -2.03249991],
               focalpoint=[0, 0, 0],
               distance=40.0,
-              figure=fig
-              )
+              figure=fig)
 
-    # mlab.show(stop=False)
-
+    # MAKE SURE THAT FLAG IS TRUE
     mlab.savefig(filename=path.join(output_dir, 'pc_%.3d.png' % data_idx),
-                 figure=fig
-                 )
+                 figure=fig)
+
+    # MAKE SURE THAT FLAG IS FALSE
+    mlab.show(stop=False)
 
 
 def show(idx):
@@ -110,35 +112,14 @@ def show(idx):
                           pc_label=pc_label)
 
 
-
-parser = argparse.ArgumentParser(description='PCDet framework result point cloud visualizer')
-# parser.add_argument('label_dir_path', type=str,
-#                     help='Path to directory with input labels')
-# parser.add_argument('output_dir_path', type=str,
-#                     help='Path to output dir for result pc scan storage')
-parser.add_argument('-t', '--threshold', type=float, default=0,
-                    help='Confidence threshold')
-args = parser.parse_args()
-
-
-# lidar_dir = 'data/object/training/velodyne'
+# script params
 lidar_dir = '/home/crowbar/PCDet/data/kitti/training/velodyne'
-
-# calib_dir = 'data/object/training/calib'
 calib_dir = '/home/crowbar/PCDet/data/kitti/training/calib'
-
-# label_dir = 'data/object/training/label_2'
-# label_dir = args.label_dir_path
 label_dir = '/home/crowbar/pc_det_aux/result_parsing/ready/second_mots/0001'
+output_dir = '.'
 
-# output_dir = args.output_dir_path
-output_dir = 'result/second_mots_pc/0001'
+threshold = 45
 
+scene_idx = 25
 
-def main():
-    for file_name in tqdm(listdir(path.join(label_dir))[:]):
-        idx = int(file_name[:-4])
-        # tqdm.write(str(idx))
-        show(idx)
-
-main()
+show(scene_idx)

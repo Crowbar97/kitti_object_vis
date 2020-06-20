@@ -171,11 +171,13 @@ class Calibration(object):
         self.P = calibs["P2"]
         self.P = np.reshape(self.P, [3, 4])
         # Rigid transform from Velodyne coord to reference camera coord
-        self.V2C = calibs["Tr_velo_to_cam"]
+        # self.V2C = calibs["Tr_velo_to_cam"]
+        self.V2C = calibs["Tr_velo_cam"]
         self.V2C = np.reshape(self.V2C, [3, 4])
         self.C2V = inverse_rigid_trans(self.V2C)
         # Rotation from reference camera coord to rect camera coord
-        self.R0 = calibs["R0_rect"]
+        # self.R0 = calibs["R0_rect"]
+        self.R0 = calibs["R_rect"]
         self.R0 = np.reshape(self.R0, [3, 3])
 
         # Camera intrinsics and extrinsics

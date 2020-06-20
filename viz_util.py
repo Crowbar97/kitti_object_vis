@@ -153,17 +153,15 @@ def draw_lidar_simple(pc, color=None):
 
 
 # pts_mode='sphere'
-def draw_lidar(
-    pc,
-    color=None,
-    fig=None,
-    bgcolor=(0, 0, 0),
-    pts_scale=0.3,
-    pts_mode="sphere",
-    pts_color=None,
-    color_by_intensity=False,
-    pc_label=False,
-):
+def draw_lidar(pc,
+               color=None,
+               fig=None,
+               bgcolor=(0, 0, 0),
+               pts_scale=0.3,
+               pts_mode="sphere",
+               pts_color=None,
+               color_by_intensity=False,
+               pc_label=False):
     """ Draw lidar points
     Args:
         pc: numpy array (n,3) of XYZ
@@ -177,9 +175,11 @@ def draw_lidar(
     pts_mode = "point"
     print("====================", pc.shape)
     if fig is None:
-        fig = mlab.figure(
-            figure=None, bgcolor=bgcolor, fgcolor=None, engine=None, size=(1600, 1000)
-        )
+        fig = mlab.figure(figure=None,
+                          bgcolor=bgcolor,
+                          fgcolor=None,
+                          engine=None,
+                          size=(1600, 1000))
     if color is None:
         color = pc[:, 2]
     if pc_label:
@@ -333,7 +333,9 @@ def draw_gt_box3d(gt_box3d, fig, obj,
     if draw_text:
         label = '%s: %.1f' % (obj.type, obj.score)
         mlab.text3d(gt_box3d[4, 0], gt_box3d[4, 1], gt_box3d[4, 2],
-                    label, scale=text_scale, color=color, figure=fig)
+                    label, scale=text_scale, color=color,
+                    figure=fig
+                    )
 
     for k in range(0, 4):
         # http://docs.enthought.com/mayavi/mayavi/auto/mlab_helper_functions.html
@@ -344,7 +346,8 @@ def draw_gt_box3d(gt_box3d, fig, obj,
                     color=color,
                     tube_radius=None,
                     line_width=line_width,
-                    figure=fig)
+                    figure=fig
+                    )
 
         i, j = k + 4, (k + 1) % 4 + 4
         mlab.plot3d([gt_box3d[i, 0], gt_box3d[j, 0]],
@@ -353,7 +356,8 @@ def draw_gt_box3d(gt_box3d, fig, obj,
                     color=color,
                     tube_radius=None,
                     line_width=line_width,
-                    figure=fig)
+                    figure=fig
+                    )
 
         i, j = k, k + 4
         mlab.plot3d([gt_box3d[i, 0], gt_box3d[j, 0]],
@@ -362,7 +366,8 @@ def draw_gt_box3d(gt_box3d, fig, obj,
                     color=color,
                     tube_radius=None,
                     line_width=line_width,
-                    figure=fig)
+                    figure=fig
+                    )
 
     # mlab.show(1)
     # mlab.view(azimuth=180, elevation=70, focalpoint=[ 12.0909996 , -1.04700089, -2.03249991], distance=62.0, figure=fig)
